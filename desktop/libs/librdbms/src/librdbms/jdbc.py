@@ -74,7 +74,10 @@ class Jdbc(object):
     self.password = password
 
     if impersonation_property and impersonation_user:
-      self.db_url += ";{}={};".format(impersonation_property, impersonation_user)
+      if "trino" in url:
+        self.db_url += "&{}={}".format(impersonation_property, impersonation_user)
+      else:
+        self.db_url += ";{}={};".format(impersonation_property, impersonation_user)
 
     self.conn = None
 

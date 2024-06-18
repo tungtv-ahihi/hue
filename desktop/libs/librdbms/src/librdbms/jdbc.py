@@ -32,6 +32,8 @@ try:
 except:
   LOG.warning('Failed to import py4j')
 
+def close(db):
+  db.close()
 
 def query_and_fetch(db, statement, n=None):
   data = None

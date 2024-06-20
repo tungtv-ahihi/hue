@@ -21,7 +21,7 @@ import sys
 
 from beeswax import data_export
 from desktop.lib.i18n import force_unicode, smart_str
-from librdbms.jdbc import Jdbc, query_and_fetch
+from librdbms.jdbc import Jdbc, query_and_fetch, close
 
 from notebook.connectors.base import Api, QueryError, AuthenticationRequired, _get_snippet_name
 from django.utils.translation import gettext as _
@@ -122,10 +122,12 @@ class JdbcApi(Api):
 
   @query_error_handler
   def cancel(self, notebook, snippet):
+    close(self.db)
     return {'status': 0}
 
   @query_error_handler
   def close_statement(self, notebook, snippet):
+    close(self.db)
     return {'status': -1}
 
   @query_error_handler

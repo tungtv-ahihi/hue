@@ -69,7 +69,7 @@ RUN ./build/env/bin/pip install --no-cache-dir \
   django_redis==4.11.0 \
   flower==0.9.7 \
   # Contains fix for SparkSql show tables \
-  git+https://github.com/gethue/PyHive \
+  pyhive==0.7.0 \
   #ksql \
   git+https://github.com/bryanyang0528/ksql-python \
   pydruid \
@@ -90,6 +90,9 @@ RUN ./build/env/bin/pip install --no-cache-dir \
   PyAthena==2.25.2
   # PyAthena == 3.x.x is latest, but not working with current configuration \
   # otherwise, 'VisitableType' object is not subscriptable in Hue UI
+
+COPY ./ghtk_libs/pyhive/trino.py /usr/share/hue/build/env/lib/python3.8/site-packages/pyhive
+COPY ./ghtk_libs/pyhive/preto.py /usr/share/hue/build/env/lib/python3.8/site-packages/pyhive
 
 USER hue
 

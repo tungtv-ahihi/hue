@@ -333,7 +333,7 @@ class SqlAlchemyApi(Api):
 
     if connection:
       cursor = connection['result'].cursor
-      if (self.options['url'].startswith('presto://') | self.options['url'].startswith('trino://')) and cursor and cursor.poll():
+      if (self.options['url'].startswith('presto://') | self.options['url'].startswith('trino://') | self.options['url'].startswith('trino+pyhive://')) and cursor and cursor.poll():
         response['status'] = 'running'
       elif snippet['result']['handle']['has_result_set']:
         response['status'] = 'available'
@@ -348,7 +348,7 @@ class SqlAlchemyApi(Api):
   @query_error_handler
   def progress(self, notebook, snippet, logs=''):
     progress = 50
-    if self.options['url'].startswith('presto://') | self.options['url'].startswith('trino://'):
+    if self.options['url'].startswith('presto://') | self.options['url'].startswith('trino://') | self.options['url'].startswith('trino+pyhive://'):
       guid = snippet['result']['handle']['guid']
       handle = CONNECTIONS.get(guid)
       stats = None
@@ -360,6 +360,10 @@ class SqlAlchemyApi(Api):
         LOG.warning('Query probably not running anymore: %s' % e)
       if stats:
         stats = stats.get('stats', {})
+        LOG.info(str(guid) + ": " + str(stats))
+        if int(stats.get('runningPercentage')) == 0:
+          handle['result'].cursor.cancel()
+
         progress = stats.get('completedSplits', 0) * 100 // stats.get('totalSplits', 1)
     return progress
 
@@ -428,8 +432,12 @@ class SqlAlchemyApi(Api):
       connection = CONNECTIONS.get(guid)
       if connection:
         connection['connection'].close()
+        if self.options['url'].startswith('presto://') | self.options['url'].startswith('trino://') | self.options['url'].startswith('trino+pyhive://'):
+          connection['result'].cursor.cancel()
         del CONNECTIONS[guid]
       result['status'] = 0
+    except Exception as e:
+      LOG.exception(e)
     finally:
       return result
 
